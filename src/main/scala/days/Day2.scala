@@ -2,24 +2,17 @@ package days
 
 import base.Day
 
-enum Direction:
-  case Forward, Up, Down
-
-enum Command(val pos: Int, val depth: Int):
-  case Forward(x: Int) extends Command(0, x)
-  case Up(x: Int) extends Command(-x, 0)
-  case Down(x: Int) extends Command(x, 0)
-
-  case Move(x: Int, y: Int) extends Command(x, y)
-
-  def +(cmd: Command): Command = Move(pos + cmd.pos, depth + cmd.depth)
-  def product: Int = pos * depth
+enum Command:
+  case Forward(n: Int)
+  case Up(n: Int)
+  case Down(n: Int)
 
 object Command {
   def fromString(s: String): Command = {
-    val tokens = s.split(' ') match
-      case Array(direction, amount) => (direction, amount.toIntOption)
-      case _                        => ("_", None)
+    val Pattern = raw"(\w+)\s(\d+)".r
+    val tokens = s match
+      case Pattern(direction, amount) => (direction, amount.toIntOption)
+      case _                          => ("", None)
 
     tokens match
       case ("forward", Some(amount)) => Command.Forward(amount)
@@ -30,9 +23,33 @@ object Command {
   }
 }
 
+trait Movable {
+  val horizontal: Int
+  val depth: Int
+  def move(cmd: Command): Movable
+  def location = horizontal * depth
+}
+
+case class Position(horizontal: Int = 0, depth: Int = 0) extends Movable {
+  def move(cmd: Command): Position =
+    cmd match
+      case Command.Forward(n) => Position(horizontal + n, depth)
+      case Command.Up(n)      => Position(horizontal, depth - n)
+      case Command.Down(n)    => Position(horizontal, depth + n)
+}
+
+case class EnhancedPosition(horizontal: Int = 0, depth: Int = 0, aim: Int = 0) extends Movable {
+  def move(cmd: Command): EnhancedPosition = {
+    cmd match
+      case Command.Forward(n) => EnhancedPosition(horizontal + n, depth + aim * n, aim)
+      case Command.Up(n)      => EnhancedPosition(horizontal, depth, aim - n)
+      case Command.Down(n)    => EnhancedPosition(horizontal, depth, aim + n)
+  }
+}
+
 object Day2 extends Day(2) {
   private val commands = input.getLines().map(Command.fromString).toList
 
-  override def partOne(): String = commands.reduce(_ + _).product.toString
-  override def partTwo(): String = ???
+  override def partOne(): String = commands.foldLeft(Position())(_.move(_)).location.toString
+  override def partTwo(): String = commands.foldLeft(EnhancedPosition())(_.move(_)).location.toString
 }
