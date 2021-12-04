@@ -1,8 +1,8 @@
-import days.{Day1, Day2}
+import days.{Day1, Day2, Day3}
 
 @main def hello: Unit =
 //  TODO: Implement runner
-  val currentDay = Day2
+  val currentDay = Day3
   println("----------OUTPUT----------")
   println(currentDay.partOne())
   println(currentDay.partTwo())

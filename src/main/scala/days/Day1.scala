@@ -6,8 +6,8 @@ object Day1 extends Day(1) {
 
   extension (it: List[Int]) def countIncreasing = it.sliding(2).count { case Seq(fst, snd) => snd > fst }
 
-  def partOne() = measures.countIncreasing.toString
-  def partTwo() = {
+  def partOne(): String = measures.countIncreasing.toString
+  def partTwo(): String = {
     val averaged = measures.sliding(3).map(_.sum).toList
     averaged.countIncreasing.toString
   }

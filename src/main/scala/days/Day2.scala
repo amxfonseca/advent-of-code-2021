@@ -27,7 +27,7 @@ trait Movable {
   val horizontal: Int
   val depth: Int
   def move(cmd: Command): Movable
-  def location = horizontal * depth
+  def location: Int = horizontal * depth
 }
 
 case class Position(horizontal: Int = 0, depth: Int = 0) extends Movable {
