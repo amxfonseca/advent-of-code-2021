@@ -34,7 +34,7 @@ object BingoGame {
 
   }
 
-  def nextState(g: BingoGame, number: Int) = g match
+  def nextState(g: BingoGame, number: Int): BingoGame = g match
     case Finished(_, _)                               => g
     case Ongoing(_, state) if !state.contains(number) => g
     case Ongoing(size, state) =>
@@ -45,24 +45,28 @@ object BingoGame {
         case Some(_) => Finished(number, newState)
         case None    => Ongoing(size, newState)
 
-  def parseInputs(data: Iterable[String]) = data.flatMap(_.split(',')).map(_.toInt)
-  def parseGames(data: Iterable[String]) =
+  def parseInputs(data: Iterable[String]): Iterable[Int] = data.flatMap(_.split(',')).map(_.toInt)
+  def parseGames(data: Iterable[String]): Iterator[Iterable[Int]] =
     val cleanData = data.dropWhile(_ == "")
     val gameSize = cleanData.headOption match
-      case Some(str) => str.split(' ').size
+      case Some(str) => str.split(' ').length
       case _         => throw new IllegalArgumentException
 
     val parseLine: String => Iterable[Int] = _.split(' ').flatMap(_.toIntOption)
     cleanData.filterNot(_ == "").grouped(gameSize).map(_.flatMap(parseLine))
 
+  def gameScore: BingoGame.Finished => Int = { case BingoGame.Finished(lastCall, state) =>
+    lastCall * state.filterNot(_._2).keys.sum
+  }
+
 }
 
 object Day4 extends Day(4) {
   val (rawInputs, rawGames) = input.getLines().toSeq.splitAt(1)
-  val inputs = BingoGame.parseInputs(rawInputs)
-  val games = BingoGame.parseGames(rawGames).map(BingoGame.create).toSeq
+  val inputs: Iterable[Int] = BingoGame.parseInputs(rawInputs)
+  val games: Seq[BingoGame] = BingoGame.parseGames(rawGames).map(BingoGame.create).toSeq
 
-  def partOne() = {
+  def partOne(): String = {
 
     @tailrec
     def findWinningGame(games: Iterable[BingoGame], inputs: Iterable[Int]): Option[BingoGame.Finished] =
@@ -70,6 +74,7 @@ object Day4 extends Day(4) {
         case Nil => None
         case x :: xs =>
           val gamesAfterMove = games.map(BingoGame.nextState(_, x))
+
           gamesAfterMove.find(_.isInstanceOf[BingoGame.Finished]) match {
             case Some(game @ BingoGame.Finished(_, _)) => Some(game)
             case _                                     => findWinningGame(gamesAfterMove, xs)
@@ -77,12 +82,38 @@ object Day4 extends Day(4) {
       }
 
     val response = findWinningGame(games, inputs) match {
-      case Some(BingoGame.Finished(lastMove, state)) => lastMove * state.filterNot(_._2).keys.sum
-      case _                                         => 0
+      case Some(winningGame) => BingoGame.gameScore(winningGame)
+      case _                 => 0
     }
 
     response.toString
 
   }
-  def partTwo() = ""
+  def partTwo(): String = {
+
+    @tailrec
+    def findLastWinningGame(games: Iterable[BingoGame], inputs: Iterable[Int]): Option[BingoGame.Finished] =
+      inputs match {
+        case Nil => None
+        case x :: xs =>
+          val gamesAfterMove = games.map(BingoGame.nextState(_, x))
+          val ongoingGames = gamesAfterMove.filter(_.isInstanceOf[BingoGame.Ongoing])
+
+          ongoingGames.size match {
+            case 0 =>
+              gamesAfterMove match {
+                case (last @ BingoGame.Finished(_, _)) :: Nil => Some(last)
+                case _                                        => None
+              }
+            case _ => findLastWinningGame(ongoingGames, xs)
+          }
+      }
+
+    val response = findLastWinningGame(games, inputs) match {
+      case Some(winningGame) => BingoGame.gameScore(winningGame)
+      case _                 => 0
+    }
+
+    response.toString
+  }
 }
