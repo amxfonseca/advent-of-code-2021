@@ -1,6 +1,7 @@
 package days
 
 import base.Day
+
 import scala.annotation.tailrec
 
 type Sample = Vector[Int]
