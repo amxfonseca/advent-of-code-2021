@@ -43,7 +43,7 @@ case class Plotter(state: Map[Point, Int] = Map.empty) {
     Plotter(newState)
   }
 
-  def intersections: Int = state.filter(_._2 > 1).size
+  def intersections: Int = state.count(_._2 > 1)
 }
 
 object Day5 extends Day(5) {
