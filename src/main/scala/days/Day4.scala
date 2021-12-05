@@ -76,8 +76,8 @@ object Day4 extends Day(4) {
           val gamesAfterMove = games.map(BingoGame.nextState(_, x))
 
           gamesAfterMove.find(_.isInstanceOf[BingoGame.Finished]) match {
-            case Some(game @ BingoGame.Finished(_, _)) => Some(game)
-            case _                                     => findWinningGame(gamesAfterMove, xs)
+            case Some(game: BingoGame.Finished) => Some(game)
+            case _                              => findWinningGame(gamesAfterMove, xs)
           }
       }
 
@@ -102,8 +102,8 @@ object Day4 extends Day(4) {
           ongoingGames.size match {
             case 0 =>
               gamesAfterMove match {
-                case (last @ BingoGame.Finished(_, _)) :: Nil => Some(last)
-                case _                                        => None
+                case (last: BingoGame.Finished) :: Nil => Some(last)
+                case _                                 => None
               }
             case _ => findLastWinningGame(ongoingGames, xs)
           }
